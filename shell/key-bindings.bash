@@ -69,7 +69,7 @@ __fzf_history__() (
     #cat $HOME/.bash_eternal_history | gcut -c1-28 --complement | perl -pe 's/^\s+//' | tac | nl -ba | tac |
   line=$(
     HISTTIMEFORMAT= history |
-    FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} $FZF_DEFAULT_OPTS --tac -n2..,.. --tiebreak=index --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS +m" $(__fzfcmd) |
+    FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} $FZF_DEFAULT_OPTS --tac --sync -n2..,.. --tiebreak=index --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS +m" $(__fzfcmd) |
     command grep '^ *[0-9]') &&
     if [[ $- =~ H ]]; then
       sed 's/^ *\([0-9]*\)\** .*/!\1/' <<< "$line"

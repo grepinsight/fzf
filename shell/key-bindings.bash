@@ -11,6 +11,18 @@ __fzf_select__() {
   echo
 }
 
+__fzf_select_current__() {
+  local cmd="${FZF_CTRL_T_COMMAND_CURRENT:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+    -o -type f -print \
+    -o -type d -print \
+    -o -type l -print 2> /dev/null | cut -b3-"}"
+  eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS" fzf -m "$@" | while read -r item; do
+    printf '%q ' "$item"
+  done
+  echo
+}
+
+
 if [[ $- =~ i ]]; then
 
 __fzf_use_tmux__() {
@@ -54,6 +66,7 @@ __fzf_cd__() {
 __fzf_history__() (
   local line
   shopt -u nocaseglob nocasematch
+    #cat $HOME/.bash_eternal_history | gcut -c1-28 --complement | perl -pe 's/^\s+//' | tac | nl -ba | tac |
   line=$(
     HISTTIMEFORMAT= history |
     FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} $FZF_DEFAULT_OPTS --tac -n2..,.. --tiebreak=index --bind=ctrl-r:toggle-sort $FZF_CTRL_R_OPTS +m" $(__fzfcmd) |
@@ -63,6 +76,7 @@ __fzf_history__() (
     else
       sed 's/^ *\([0-9]*\)\** *//' <<< "$line"
     fi
+  #cat $HOME/.bash_eternal_history | gcut -c1-28 --complement | perl -pe 's/^\s+//'
 )
 
 if [[ ! -o vi ]]; then
@@ -102,12 +116,18 @@ else
   # - FIXME: Selected items are attached to the end regardless of cursor position
   if [ $BASH_VERSINFO -gt 3 ]; then
     bind -x '"\C-t": "fzf-file-widget"'
+    # bind -x '"\C-g": "fzf-file-widget"'
   elif __fzf_use_tmux__; then
     bind '"\C-t": "\C-x\C-a$a \C-x\C-addi`__fzf_select_tmux__`\C-x\C-e\C-x\C-a0P$xa"'
+    # bind '"\C-g": "\C-x\C-a$a \C-x\C-addi`__fzf_select_tmux__`\C-x\C-e\C-x\C-a0P$xa"'
   else
-    bind '"\C-t": "\C-x\C-a$a \C-x\C-addi`__fzf_select__`\C-x\C-e\C-x\C-a0Px$a \C-x\C-r\C-x\C-axa "'
+    bind '"\C-g": "\C-x\C-a$a \C-x\C-addi`__fzf_select__`\C-x\C-e\C-x\C-a0Px$a \C-x\C-r\C-x\C-axa "'
+
+	# Add new functionality
+    bind '"\C-t": "\C-x\C-a$a \C-x\C-addi`__fzf_select_current__`\C-x\C-e\C-x\C-a0Px$a \C-x\C-r\C-x\C-axa "'
   fi
   bind -m vi-command '"\C-t": "i\C-t"'
+  # bind -m vi-command '"\C-g": "i\C-t"'
 
   # CTRL-R - Paste the selected command from history into the command line
   bind '"\C-r": "\C-x\C-addi`__fzf_history__`\C-x\C-e\C-x\C-r\C-x^\C-x\C-a$a"'

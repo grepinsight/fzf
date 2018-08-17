@@ -267,6 +267,13 @@ _fzf_complete_unalias() {
   )
 }
 
+_fzf_complete_do() {
+  _fzf_complete '+m' "$@" < <(
+      cat $HOME/.bash_eternal_history | gcut -c1-28 --complement | perl -pe 's/^\s+//'
+  )
+}
+
+
 # fzf options
 complete -o default -F _fzf_opts_completion fzf
 
@@ -329,5 +336,6 @@ complete -F _fzf_complete_telnet -o default -o bashdefault telnet
 complete -F _fzf_complete_unset -o default -o bashdefault unset
 complete -F _fzf_complete_export -o default -o bashdefault export
 complete -F _fzf_complete_unalias -o default -o bashdefault unalias
+complete -F _fzf_complete_do -o default -o bashdefault time
 
 unset cmd d_cmds a_cmds x_cmds

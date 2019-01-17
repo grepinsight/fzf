@@ -248,6 +248,12 @@ _fzf_complete_ssh() {
   )
 }
 
+_fzf_complete_docker() {
+  _fzf_complete '+m' "$@" < <(
+	docker images --format "{{.Repository}}" | grep -v '<none>'
+  )
+}
+
 _fzf_complete_unset() {
   _fzf_complete '-m' "$@" < <(
     declare -xp | sed 's/=.*//' | sed 's/.* //'
@@ -329,6 +335,7 @@ complete -F _fzf_complete_kill -o nospace -o default -o bashdefault kill
 
 # Host completion
 complete -F _fzf_complete_ssh -o default -o bashdefault ssh
+complete -F _fzf_complete_docker -o default -o bashdefault docker
 complete -F _fzf_complete_telnet -o default -o bashdefault telnet
 
 # Environment variables / Aliases

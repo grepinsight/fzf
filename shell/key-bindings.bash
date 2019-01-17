@@ -11,6 +11,14 @@ __fzf_select__() {
   echo
 }
 
+__fzf_select_noignore__() {
+  local cmd="${FZF_CTRL_T_COMMAND_CURRENT} --no-ignore"
+  eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS" fzf -m "$@" | while read -r item; do
+    printf '%q ' "$item"
+  done
+  echo
+}
+
 __fzf_select_current__() {
   local cmd="${FZF_CTRL_T_COMMAND_CURRENT:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
     -o -type f -print \
@@ -50,7 +58,13 @@ fzf-file-widget() {
   if __fzf_use_tmux__; then
     __fzf_select_tmux__
   else
-    local selected="$(__fzf_select__)"
+	if [[ $1 == "global" ]];then
+		local selected="$(__fzf_select__)"
+	elif [[ $1 == "noignore" ]];then
+		local selected="$(__fzf_select_noignore__)"
+	else
+		local selected="$(__fzf_select_current__)"
+	fi
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$(( READLINE_POINT + ${#selected} ))
   fi
@@ -116,7 +130,8 @@ else
   # - FIXME: Selected items are attached to the end regardless of cursor position
   if [ $BASH_VERSINFO -gt 3 ]; then
     bind -x '"\C-t": "fzf-file-widget"'
-    # bind -x '"\C-g": "fzf-file-widget"'
+    bind -x '"\C-f": "fzf-file-widget noignore"'
+    bind -x '"\C-g": "fzf-file-widget global"'
   elif __fzf_use_tmux__; then
     bind '"\C-t": "\C-x\C-a$a \C-x\C-addi`__fzf_select_tmux__`\C-x\C-e\C-x\C-a0P$xa"'
     # bind '"\C-g": "\C-x\C-a$a \C-x\C-addi`__fzf_select_tmux__`\C-x\C-e\C-x\C-a0P$xa"'

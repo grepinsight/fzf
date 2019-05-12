@@ -336,6 +336,7 @@ complete -F _fzf_complete_kill -o nospace -o default -o bashdefault kill
 # Host completion
 complete -F _fzf_complete_ssh -o default -o bashdefault ssh
 complete -F _fzf_complete_docker -o default -o bashdefault docker
+complete -F _fzf_complete_docker -o default -o bashdefault dx-docker
 complete -F _fzf_complete_telnet -o default -o bashdefault telnet
 
 # Environment variables / Aliases

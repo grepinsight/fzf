@@ -1,20 +1,26 @@
-language: ruby
-dist: trusty
-sudo: required
-matrix:
-  include:
-    - env: TAGS=
-      rvm: 2.3.3
-#   - env: TAGS=tcell
-#     rvm: 2.3.3
-
-install:
-- sudo add-apt-repository -y ppa:pi-rho/dev
-- sudo apt-add-repository -y ppa:fish-shell/release-2
-- sudo apt-get update
-- sudo apt-get install -y tmux zsh fish
-
-script: |
-  make test install &&
-  ./install --all &&
-  tmux new "ruby test/test_go.rb > out && touch ok" && cat out && [ -e ok ]
+language: go
+env: GO111MODULE=on
+os:
+  - linux
+  - osx
+dist: bionic
+addons:
+  apt:
+    packages:
+      - fish
+      - zsh
+    sources:
+      sourceline: ppa:fish-shell/release-3
+  homebrew:
+    packages:
+      - fish
+      - tmux
+    update: true
+install: gem install minitest rubocop rubocop-minitest rubocop-performance
+script:
+  - make test
+  # LC_ALL=C to avoid escape codes in
+  # printf %q $'\355\205\214\354\212\244\355\212\270' on macOS. Bash on
+  # macOS is built without HANDLE_MULTIBYTE?
+  - make install && ./install --all && LC_ALL=C tmux new-session -d && ruby test/test_go.rb --verbose
+  - rubocop --require rubocop-minitest --require rubocop-performance
